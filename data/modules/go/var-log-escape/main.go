@@ -81,8 +81,8 @@ func getDefaultGateway() string {
 	checkError(err)
 	match := r.FindAllStringSubmatch(string(out), -1)
 
-	getway := match[0][1]
-	a, _ := hex.DecodeString(getway)
+	gateway := match[0][1]
+	a, _ := hex.DecodeString(gateway)
 	return fmt.Sprintf("%v.%v.%v.%v", a[3], a[2], a[1], a[0])
 }
 
