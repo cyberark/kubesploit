@@ -39,8 +39,10 @@ func extractDeviceType(deviceType string) (string,error) {
 
 			// extracting the UUID of the device
 			for _, splitLine := range splittedCmdLine {
-				if strings.HasPrefix(splitLine, "root=UUID") {
-					uuid = splitLine[10:]
+				if strings.HasPrefix(splitLine, "root=UUID") || strings.HasPrefix(splitLine, "root=PARTUUID") {
+					//uuid = splitLine[10:]
+					split2 := strings.Split(splitLine, "=")
+					uuid = split2[len(split2) - 1]
 					foundUUID = true
 				}
 			}
