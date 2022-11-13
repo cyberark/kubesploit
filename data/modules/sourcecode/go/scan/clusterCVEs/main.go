@@ -875,6 +875,7 @@ func checkForVulnerabilitiesBaseOnVersion(currentVersion Version) {
 	isSmallerThanAll := 0
 	knownCVEs := KNOWN_KUBERNETES_CVES
 	for _, cve := range knownCVEs {
+		vulnerable = false
 		fixedVersions := cve.FixedVersions
 		for _, cveVersion := range fixedVersions {
 			if currentVersion.Major == cveVersion.Major {
