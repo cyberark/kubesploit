@@ -19,7 +19,7 @@
 package kubesploitVersion
 
 // Version is a constant variable containing the version number for Kubesploit
-const Version = "0.1.3"
+const Version = "0.1.4"
 
 // MerlinVersion is a constant variable containing the version number for the Merlin package
 const MerlinVersion = "0.9.1"
