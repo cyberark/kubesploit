@@ -1,5 +1,5 @@
 [![License][license-img]][license]
-![Python](https://img.shields.io/badge/go-v1.14-blue.svg?style=plastic)
+![Python](https://img.shields.io/badge/go-v1.19-blue.svg?style=plastic)
 ![Downloads][download]
 
 
