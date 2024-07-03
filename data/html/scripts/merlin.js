@@ -21,13 +21,13 @@ var debug = false;
 var verbose = true;
 var initial = true;
 var hostUUID = guid();
-var version = "0.6.3.BETA";
-var build = "nonRelease";
+var version = "0.1.4";
+var build = "debc37fb060ca58e2cad1924de18f8141b13d7ba";
 var waitTime = 30000; // in milliseconds
 var maxRetry = 7;
 var paddingMax = 4096;
 var failedCheckin = 0;
-var url = "https://127.0.0.1:443/";
+var url = "https://127.0.0.1:443";
 var log = document.getElementById("merlinLog");
 var options = {localeMatcher: "lookup", year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric',
     minute: 'numeric', second: 'numeric'};
