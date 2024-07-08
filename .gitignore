@@ -5,6 +5,6 @@ data/temp/v0.1.4/debc37fb060ca58e2cad1924de18f8141b13d7ba/kubesploitServer-Darwi
 data/temp/v0.1.4/debc37fb060ca58e2cad1924de18f8141b13d7ba/kubesploitAgent-Linux-x64
 data/temp/v0.1.4/debc37fb060ca58e2cad1924de18f8141b13d7ba/kubesploitAgent-Darwin-x64
 data/log/merlinServerLog.txt
+data/html/scripts/merlin.js
 server
-test-pod.yaml
 agent
