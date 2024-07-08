@@ -1,9 +1,9 @@
-data/temp/*/PRISM-Darwin-x64
-data/temp/*/PRISM-Linux-x64
-data/temp/*/kubesploitServer-Linux-x64
-data/temp/*/kubesploitServer-Darwin-x64
-data/temp/*/kubesploitAgent-Linux-x64
-data/temp/*/kubesploitAgent-Darwin-x64
+data/temp/*/*/PRISM-Darwin-x64
+data/temp/*/*/PRISM-Linux-x64
+data/temp/*/*/kubesploitServer-Linux-x64
+data/temp/*/*/kubesploitServer-Darwin-x64
+data/temp/*/*/kubesploitAgent-Linux-x64
+data/temp/*/*/kubesploitAgent-Darwin-x64
 data/log/merlinServerLog.txt
 data/html/scripts/merlin.js
 server

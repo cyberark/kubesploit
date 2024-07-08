@@ -507,7 +507,6 @@ func scanForTokensFromAllPods(url string) {
 				// once we're done it's we read from the semaphoreChan which
 				// has the effect of removing one from the limit and allowing
 				// another goroutine to start
-				fmt.Printf("Completed request for Pod: %s, Container: %s\n", pod.MetaData.Name, container.Name)
 				<-semaphoreChan
 			}(localI, localPod, localContainer)
 		}
