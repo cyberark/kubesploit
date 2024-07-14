@@ -67,7 +67,7 @@ The currently available modules are:
 
 
 ## Quick Start
-We created a dedicated [Kubernetes environment in Katacoda](https://www.katacoda.com/cyberarkcommons/scenarios/kubesploit) for you to experiment with Kubesploit.   
+We created a dedicated [Kubernetes environment in KillerCoda](https://killercoda.com/cyberarklabs/scenario/kubesploit) for you to experiment with Kubesploit.   
 It’s a full simulation with a complete set of automated instructions on how to use Kubesploit. We encourage you to explore it.  
 
 ![kubesploit](https://github.com/cyberark/kubesploit/blob/assets/kubesploit_demo_with_progress_bar.gif)
