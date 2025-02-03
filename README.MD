@@ -70,6 +70,16 @@ The currently available modules are:
 We created a dedicated [Kubernetes environment in KillerCoda](https://killercoda.com/cyberarklabs/scenario/kubesploit) for you to experiment with Kubesploit.   
 It’s a full simulation with a complete set of automated instructions on how to use Kubesploit. We encourage you to explore it.  
 
+Run the server:
+```
+./kubesploitServer  
+```  
+
+Run the agent:  
+```
+./agent -url https://<server_ip>:443 &   
+```
+
 ![kubesploit](https://github.com/cyberark/kubesploit/blob/assets/kubesploit_demo_with_progress_bar.gif)
 
 ## Build
